@@ -893,9 +893,26 @@ export class BackendService {
 
     const currentFindings = await this.repository.listRunFindings(scanRunId);
     const previousRun = await this.repository.getPreviousCompletedRun(run.run);
-    const previousFindings = previousRun
+    let previousFindings = previousRun
       ? await this.repository.listRunFindings(previousRun.run.id)
       : [];
+
+    // For page/path rescans, restrict the diff to only pages that were actually
+    // rescanned. Without this, every finding on unscanned pages would appear as
+    // "resolved" since it wasn't detected in the partial rescan.
+    if (run.run.mode !== "full") {
+      const scannedUrls = new Set(
+        currentFindings.map((record) => record.latestInstance.normalizedUrl)
+      );
+      if (scannedUrls.size > 0) {
+        previousFindings = previousFindings.filter(
+          (record) => scannedUrls.has(record.latestInstance.normalizedUrl)
+        );
+      } else {
+        // Rescan found zero findings — no previous findings to compare against.
+        previousFindings = [];
+      }
+    }
 
     const currentById = new Map(currentFindings.map((record) => [record.finding.id, record]));
     const previousById = new Map(previousFindings.map((record) => [record.finding.id, record]));

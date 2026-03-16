@@ -551,8 +551,8 @@ function renderHero() {
     <section class="hero">
       <div class="hero-copy">
         <div class="hero-copy-row">
-          <h1>WCAG-Guide</h1>
-          <p>Scan, triage, and remediate WCAG 2.1 findings from one compact surface.</p>
+          <h1>Improve Site Accessibility</h1>
+          <p>Triage findings, update status, and trigger rescans from one compact surface.</p>
         </div>
       </div>
       <div class="hero-panel">
@@ -1659,6 +1659,10 @@ async function loadFindingDetail(findingId) {
     state.findingDetail.statusHistory = payload.status_history;
     syncFindingFormFromDetail(payload);
     state.findingDetail.submitError = "";
+    // Update the page rescan URL to match the selected finding's page.
+    if (payload.finding?.latest_instance?.page_url) {
+      state.runDetail.rescanForms.page.page_url = payload.finding.latest_instance.page_url;
+    }
   } catch (error) {
     state.findingDetail.error = error.message;
   } finally {

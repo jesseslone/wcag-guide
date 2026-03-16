@@ -218,7 +218,7 @@ async function insertFindingInstance(client, findingId, pageId, finding) {
   );
 }
 
-async function getPreviousFingerprints(client, scanTargetId, scanRunId) {
+async function getPreviousFingerprints(client, scanTargetId, scanRunId, scannedUrls) {
   const previousRunResult = await client.query(
     `
       SELECT previous.id
@@ -240,6 +240,25 @@ async function getPreviousFingerprints(client, scanTargetId, scanRunId) {
     return new Set();
   }
 
+  const previousRunId = previousRunResult.rows[0].id;
+
+  // When the current run only scanned a subset of pages (page/path rescan),
+  // restrict the comparison to findings on those same pages. Otherwise a page
+  // rescan of /page1 would mark every finding on /page2 as "resolved".
+  if (scannedUrls && scannedUrls.size > 0) {
+    const result = await client.query(
+      `
+        SELECT DISTINCT f.fingerprint
+        FROM finding_instances fi
+        JOIN findings f ON f.id = fi.finding_id
+        WHERE fi.scan_run_id = $1
+          AND fi.normalized_url = ANY($2)
+      `,
+      [previousRunId, [...scannedUrls]]
+    );
+    return new Set(result.rows.map((row) => row.fingerprint));
+  }
+
   const result = await client.query(
     `
       SELECT DISTINCT f.fingerprint
@@ -247,7 +266,7 @@ async function getPreviousFingerprints(client, scanTargetId, scanRunId) {
       JOIN findings f ON f.id = fi.finding_id
       WHERE fi.scan_run_id = $1
     `,
-    [previousRunResult.rows[0].id]
+    [previousRunId]
   );
 
   return new Set(result.rows.map((row) => row.fingerprint));
@@ -279,10 +298,12 @@ async function persistResult(job, result) {
       await insertFindingInstance(client, findingId, pageId, finding);
     }
 
+    const scannedUrls = new Set(result.pages.map((page) => page.url));
     const previousFingerprints = await getPreviousFingerprints(
       client,
       job.payload.scan_target_id,
-      job.payload.scan_run_id
+      job.payload.scan_run_id,
+      job.payload.mode !== "full" ? scannedUrls : null
     );
 
     let newCount = 0;
@@ -296,10 +317,29 @@ async function persistResult(job, result) {
     }
 
     let resolvedCount = 0;
+    const resolvedFingerprints = [];
     for (const fingerprint of previousFingerprints) {
       if (!currentFingerprints.has(fingerprint)) {
         resolvedCount += 1;
+        resolvedFingerprints.push(fingerprint);
       }
+    }
+
+    // Auto-resolve findings that are no longer detected. Only transition
+    // findings that are still open or in_progress — leave ignored findings
+    // and already-resolved findings untouched.
+    if (resolvedFingerprints.length > 0) {
+      await client.query(
+        `
+          UPDATE findings
+          SET status = 'resolved',
+              updated_at = now()
+          WHERE scan_target_id = $1
+            AND fingerprint = ANY($2)
+            AND status IN ('open', 'in_progress')
+        `,
+        [job.payload.scan_target_id, resolvedFingerprints]
+      );
     }
 
     await client.query(
