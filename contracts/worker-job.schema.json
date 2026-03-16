@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wcag-guide.local/contracts/worker-job.schema.json",
+  "title": "Scan Worker Job Payload",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "job_id",
+    "idempotency_key",
+    "scan_target_id",
+    "scan_run_id",
+    "mode",
+    "scan_options"
+  ],
+  "properties": {
+    "job_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 255
+    },
+    "scan_target_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "scan_run_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["full", "path", "page"]
+    },
+    "seed_urls": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uri"
+      },
+      "default": []
+    },
+    "path_prefix": {
+      "type": "string"
+    },
+    "scan_options": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_pages", "max_depth", "concurrency", "retries"],
+      "properties": {
+        "max_pages": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5000
+        },
+        "max_depth": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 20
+        },
+        "concurrency": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "retries": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "path_allowlist": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "path_denylist": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "query_param_allowlist": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      }
+    },
+    "scanner_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "engine",
+        "engine_version",
+        "browser",
+        "browser_version",
+        "viewport",
+        "user_agent",
+        "fingerprint_version",
+        "normalization_version"
+      ],
+      "properties": {
+        "engine": {
+          "type": "string"
+        },
+        "engine_version": {
+          "type": "string"
+        },
+        "browser": {
+          "type": "string"
+        },
+        "browser_version": {
+          "type": "string"
+        },
+        "viewport": {
+          "type": "string"
+        },
+        "user_agent": {
+          "type": "string"
+        },
+        "fingerprint_version": {
+          "type": "string"
+        },
+        "normalization_version": {
+          "type": "string"
+        }
+      }
+    },
+    "compliance_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "version", "standard_target", "axe_tags"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "standard_target": {
+          "type": "string"
+        },
+        "axe_tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "mode": {
+            "const": "page"
+          }
+        }
+      },
+      "then": {
+        "required": ["seed_urls"],
+        "properties": {
+          "seed_urls": {
+            "minItems": 1,
+            "maxItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "mode": {
+            "const": "path"
+          }
+        }
+      },
+      "then": {
+        "required": ["path_prefix"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,934 @@
+openapi: 3.1.0
+info:
+  title: WCAG-Guide API
+  version: 1.0.0
+  description: Contract-frozen API for Stage-2 MVP.
+servers:
+  - url: http://localhost:8080
+paths:
+  /compliance-profiles:
+    get:
+      summary: List supported compliance profiles
+      operationId: listComplianceProfiles
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceProfilesResponse'
+
+  /scan-targets:
+    get:
+      summary: List scan targets
+      operationId: listScanTargets
+      parameters:
+        - $ref: '#/components/parameters/SiteKey'
+        - $ref: '#/components/parameters/Environment'
+        - $ref: '#/components/parameters/Branch'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedScanTargetsResponse'
+    put:
+      summary: Create or update a scan target
+      operationId: upsertScanTarget
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScanTargetUpsertRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanTargetResponse'
+
+  /scan-runs:
+    post:
+      summary: Create a full scan run
+      operationId: createScanRun
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateScanRunRequest'
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanRunResponse'
+    get:
+      summary: List scan runs
+      operationId: listScanRuns
+      parameters:
+        - $ref: '#/components/parameters/SiteKey'
+        - $ref: '#/components/parameters/Environment'
+        - $ref: '#/components/parameters/Branch'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedScanRunsResponse'
+
+  /scan-runs/rescan-page:
+    post:
+      summary: Create a page-level rescan run
+      operationId: createRescanPageRun
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RescanPageRequest'
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanRunResponse'
+
+  /scan-runs/rescan-path:
+    post:
+      summary: Create a path-level rescan run
+      operationId: createRescanPathRun
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RescanPathRequest'
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanRunResponse'
+
+  /scan-runs/{scanRunId}:
+    get:
+      summary: Get scan run details
+      operationId: getScanRun
+      parameters:
+        - $ref: '#/components/parameters/ScanRunId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScanRunResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete a completed or failed scan run
+      operationId: deleteScanRun
+      parameters:
+        - $ref: '#/components/parameters/ScanRunId'
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /scan-runs/{scanRunId}/findings:
+    get:
+      summary: List findings scoped to a scan run
+      operationId: listScanRunFindings
+      parameters:
+        - $ref: '#/components/parameters/ScanRunId'
+        - $ref: '#/components/parameters/DiffStatus'
+        - $ref: '#/components/parameters/Status'
+        - $ref: '#/components/parameters/Severity'
+        - $ref: '#/components/parameters/RuleId'
+        - $ref: '#/components/parameters/PathPrefix'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedFindingsResponse'
+
+  /scan-runs/{scanRunId}/hvt-groups:
+    get:
+      summary: List derived high-value target groups for a scan run
+      operationId: listScanRunHvtGroups
+      parameters:
+        - $ref: '#/components/parameters/ScanRunId'
+        - $ref: '#/components/parameters/HvtGroupLevel'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HvtGroupsResponse'
+
+  /findings:
+    get:
+      summary: List findings across runs with filters
+      operationId: listFindings
+      parameters:
+        - $ref: '#/components/parameters/SiteKey'
+        - $ref: '#/components/parameters/Environment'
+        - $ref: '#/components/parameters/Branch'
+        - $ref: '#/components/parameters/Status'
+        - $ref: '#/components/parameters/Severity'
+        - $ref: '#/components/parameters/RuleId'
+        - $ref: '#/components/parameters/PathPrefix'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedFindingsResponse'
+
+  /findings/{findingId}:
+    get:
+      summary: Get finding details and status history
+      operationId: getFinding
+      parameters:
+        - $ref: '#/components/parameters/FindingId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FindingResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /findings/{findingId}/status:
+    patch:
+      summary: Update remediation status for a finding
+      operationId: updateFindingStatus
+      parameters:
+        - $ref: '#/components/parameters/FindingId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFindingStatusRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FindingResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  parameters:
+    ScanRunId:
+      name: scanRunId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    FindingId:
+      name: findingId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SiteKey:
+      name: site_key
+      in: query
+      required: false
+      schema:
+        type: string
+    Environment:
+      name: environment
+      in: query
+      required: false
+      schema:
+        type: string
+    Branch:
+      name: branch
+      in: query
+      required: false
+      schema:
+        type: string
+    Status:
+      name: status
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/FindingStatus'
+    Severity:
+      name: severity
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/FindingSeverity'
+    RuleId:
+      name: rule_id
+      in: query
+      required: false
+      schema:
+        type: string
+    PathPrefix:
+      name: path_prefix
+      in: query
+      required: false
+      schema:
+        type: string
+    DiffStatus:
+      name: diff_status
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/FindingDiffStatus'
+    HvtGroupLevel:
+      name: group_level
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/HvtGroupLevel'
+    Page:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSize:
+      name: page_size
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
+    SortBy:
+      name: sort_by
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [started_at, completed_at, severity, status, rule_id]
+        default: started_at
+    SortOrder:
+      name: sort_order
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: desc
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    CreateScanRunRequest:
+      type: object
+      required:
+        - scan_target
+      properties:
+        scan_target:
+          $ref: '#/components/schemas/ScanTargetRef'
+        scan_options:
+          $ref: '#/components/schemas/ScanOptions'
+        seed_urls:
+          type: array
+          items:
+            type: string
+            format: uri
+        compliance_profile_id:
+          type: string
+        reason:
+          type: string
+          maxLength: 512
+
+    RescanPageRequest:
+      type: object
+      required:
+        - scan_target
+        - page_url
+      properties:
+        scan_target:
+          $ref: '#/components/schemas/ScanTargetRef'
+        page_url:
+          type: string
+          format: uri
+        compliance_profile_id:
+          type: string
+        scan_options:
+          $ref: '#/components/schemas/ScanOptions'
+        reason:
+          type: string
+          maxLength: 512
+
+    RescanPathRequest:
+      type: object
+      required:
+        - scan_target
+        - path_prefix
+      properties:
+        scan_target:
+          $ref: '#/components/schemas/ScanTargetRef'
+        path_prefix:
+          type: string
+        compliance_profile_id:
+          type: string
+        scan_options:
+          $ref: '#/components/schemas/ScanOptions'
+        reason:
+          type: string
+          maxLength: 512
+
+    ScanTargetRef:
+      type: object
+      required:
+        - site_key
+        - environment
+        - branch
+        - base_url
+      properties:
+        site_key:
+          type: string
+        environment:
+          type: string
+        branch:
+          type: string
+        base_url:
+          type: string
+          format: uri
+
+    ScanTargetUpsertRequest:
+      type: object
+      required:
+        - scan_target
+      properties:
+        scan_target:
+          $ref: '#/components/schemas/ScanTargetRef'
+
+    ScanTargetResponse:
+      type: object
+      required:
+        - scan_target
+      properties:
+        scan_target:
+          $ref: '#/components/schemas/ScanTargetRef'
+
+    PaginatedScanTargetsResponse:
+      type: object
+      required:
+        - items
+        - page
+        - page_size
+        - total
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScanTargetRef'
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total:
+          type: integer
+
+    ScanOptions:
+      type: object
+      additionalProperties: false
+      properties:
+        max_pages:
+          type: integer
+          minimum: 1
+          maximum: 5000
+          default: 500
+        max_depth:
+          type: integer
+          minimum: 0
+          maximum: 20
+          default: 5
+        concurrency:
+          type: integer
+          minimum: 1
+          maximum: 20
+          default: 4
+        retries:
+          type: integer
+          minimum: 0
+          maximum: 5
+          default: 1
+        path_allowlist:
+          type: array
+          items:
+            type: string
+        path_denylist:
+          type: array
+          items:
+            type: string
+
+    ScanRunResponse:
+      type: object
+      required:
+        - run
+      properties:
+        run:
+          $ref: '#/components/schemas/ScanRun'
+
+    PaginatedScanRunsResponse:
+      type: object
+      required:
+        - items
+        - page
+        - page_size
+        - total
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScanRun'
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total:
+          type: integer
+
+    ScanRun:
+      type: object
+      required:
+        - id
+        - scan_target
+        - compliance_profile
+        - mode
+        - state
+        - started_at
+        - summary
+        - scanner_context
+      properties:
+        id:
+          type: string
+          format: uuid
+        scan_target:
+          $ref: '#/components/schemas/ScanTargetRef'
+        compliance_profile:
+          $ref: '#/components/schemas/ComplianceProfile'
+        mode:
+          type: string
+          enum: [full, path, page]
+        state:
+          type: string
+          enum: [queued, running, completed, failed]
+        reason:
+          type: string
+          nullable: true
+        scan_options:
+          $ref: '#/components/schemas/ScanOptions'
+        started_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        summary:
+          type: object
+          required: [pages_scanned, findings_total, new_count, resolved_count, persistent_count]
+          properties:
+            pages_scanned:
+              type: integer
+            findings_total:
+              type: integer
+            new_count:
+              type: integer
+            resolved_count:
+              type: integer
+            persistent_count:
+              type: integer
+        scanner_context:
+          type: object
+          required: [engine, engine_version, browser, browser_version, viewport, user_agent, fingerprint_version, normalization_version]
+          properties:
+            engine:
+              type: string
+            engine_version:
+              type: string
+            browser:
+              type: string
+            browser_version:
+              type: string
+            viewport:
+              type: string
+            user_agent:
+              type: string
+            fingerprint_version:
+              type: string
+            normalization_version:
+              type: string
+
+    PaginatedFindingsResponse:
+      type: object
+      required:
+        - items
+        - page
+        - page_size
+        - total
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Finding'
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total:
+          type: integer
+
+    Finding:
+      type: object
+      required:
+        - id
+        - fingerprint
+        - rule_id
+        - severity
+        - status
+        - latest_instance
+      properties:
+        id:
+          type: string
+          format: uuid
+        fingerprint:
+          type: string
+        rule_id:
+          type: string
+        severity:
+          $ref: '#/components/schemas/FindingSeverity'
+        status:
+          $ref: '#/components/schemas/FindingStatus'
+        diff_status:
+          $ref: '#/components/schemas/FindingDiffStatus'
+        ignore_expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        scan_target:
+          $ref: '#/components/schemas/ScanTargetRef'
+        rule_metadata:
+          $ref: '#/components/schemas/RuleMetadata'
+        latest_instance:
+          $ref: '#/components/schemas/FindingInstance'
+
+    FindingResponse:
+      type: object
+      required:
+        - finding
+        - status_history
+      properties:
+        finding:
+          $ref: '#/components/schemas/Finding'
+        status_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/StatusEvent'
+
+    FindingInstance:
+      type: object
+      required:
+        - id
+        - scan_run_id
+        - page_url
+        - normalized_url
+        - selector
+        - snippet
+        - detected_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        scan_run_id:
+          type: string
+          format: uuid
+        page_url:
+          type: string
+        normalized_url:
+          type: string
+        selector:
+          type: string
+        snippet:
+          type: string
+        failure_summary:
+          type: string
+          nullable: true
+        detected_at:
+          type: string
+          format: date-time
+
+    ComplianceProfile:
+      type: object
+      required:
+        - id
+        - label
+        - version
+        - standard_target
+        - axe_tags
+        - is_default
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        version:
+          type: string
+        standard_target:
+          type: string
+        axe_tags:
+          type: array
+          items:
+            type: string
+        is_default:
+          type: boolean
+
+    ComplianceProfilesResponse:
+      type: object
+      required:
+        - default_profile_id
+        - items
+      properties:
+        default_profile_id:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ComplianceProfile'
+
+    RuleMetadata:
+      type: object
+      required:
+        - rule_id
+      properties:
+        rule_id:
+          type: string
+        rule_help:
+          type: string
+          nullable: true
+        rule_description:
+          type: string
+          nullable: true
+        rule_help_url:
+          type: string
+          nullable: true
+        rule_tags:
+          type: array
+          items:
+            type: string
+
+    HvtGroupLevel:
+      type: string
+      enum: [fix_surface_cluster, component_cluster, section_cluster]
+
+    HvtGroup:
+      type: object
+      required:
+        - group_id
+        - group_level
+        - rule_id
+        - normalized_selector
+        - highest_severity
+        - finding_count
+        - affected_pages
+        - affected_runs
+        - sample_urls
+        - sample_selectors
+        - last_seen_at
+      properties:
+        group_id:
+          type: string
+        group_level:
+          $ref: '#/components/schemas/HvtGroupLevel'
+        rule_id:
+          type: string
+        normalized_selector:
+          type: string
+        path_prefix:
+          type: string
+          nullable: true
+        highest_severity:
+          $ref: '#/components/schemas/FindingSeverity'
+        finding_count:
+          type: integer
+        affected_pages:
+          type: integer
+        affected_runs:
+          type: integer
+        sample_urls:
+          type: array
+          items:
+            type: string
+        sample_selectors:
+          type: array
+          items:
+            type: string
+        representative_snippet:
+          type: string
+          nullable: true
+        last_seen_at:
+          type: string
+          format: date-time
+        likely_fix_surface:
+          type: string
+          nullable: true
+        suggested_first_look:
+          type: string
+          nullable: true
+
+    HvtGroupsResponse:
+      type: object
+      required:
+        - scan_run_id
+        - compliance_profile
+        - group_level
+        - items
+        - page
+        - page_size
+        - total
+      properties:
+        scan_run_id:
+          type: string
+          format: uuid
+        compliance_profile:
+          $ref: '#/components/schemas/ComplianceProfile'
+        group_level:
+          $ref: '#/components/schemas/HvtGroupLevel'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/HvtGroup'
+        page:
+          type: integer
+        page_size:
+          type: integer
+        total:
+          type: integer
+
+    UpdateFindingStatusRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/FindingStatus'
+        note:
+          type: string
+          maxLength: 4000
+        ignore_expires_at:
+          type: string
+          format: date-time
+          nullable: true
+      allOf:
+        - if:
+            properties:
+              status:
+                const: ignored
+          then:
+            required:
+              - ignore_expires_at
+              - note
+
+    FindingStatus:
+      type: string
+      enum: [open, in_progress, resolved, ignored]
+
+    FindingDiffStatus:
+      type: string
+      enum: [new, resolved, persistent]
+
+    FindingSeverity:
+      type: string
+      enum: [critical, serious, moderate, minor]
+
+    StatusEvent:
+      type: object
+      required:
+        - id
+        - previous_status
+        - new_status
+        - changed_by
+        - changed_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        previous_status:
+          $ref: '#/components/schemas/FindingStatus'
+        new_status:
+          $ref: '#/components/schemas/FindingStatus'
+        note:
+          type: string
+          nullable: true
+        ignore_expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        changed_by:
+          type: string
+        changed_at:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+            message:
+              type: string

@@ -1,0 +1,19 @@
+FROM node:22.21.0-bookworm
+
+WORKDIR /workspace
+
+# Keep scanner/browser versions explicit for reproducible runs.
+ENV SCANNER_VIEWPORT=1440x900
+ENV SCANNER_USER_AGENT=wcag-guide-worker/0.1.0
+ENV PLAYWRIGHT_VERSION=1.54.2
+ENV AXE_CORE_VERSION=4.11.0
+
+COPY package.json package-lock.json* ./
+RUN npm install --no-fund --no-audit
+
+# Install Playwright Chromium + OS deps for axe-core scanning.
+RUN npx playwright install --with-deps chromium
+
+COPY . .
+
+CMD ["bash", "-lc", "npm run start:app"]

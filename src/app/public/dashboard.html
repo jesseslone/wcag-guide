@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WCAG-Guide Dashboard</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230e6d66'/%3E%3Cpath d='M18 34c7-2 12-9 14-16 2 7 7 14 14 16-7 2-12 9-14 16-2-7-7-14-14-16Z' fill='%23fffaf1'/%3E%3C/svg%3E">
+    <script>
+    (function(){
+      var t = new URLSearchParams(location.search).get('theme')
+        || localStorage.getItem('wcag-guide-theme') || 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+    </script>
+    <link rel="stylesheet" href="/dashboard.css">
+    <script type="module" src="/dashboard.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <noscript>This dashboard requires JavaScript.</noscript>
+  </body>
+</html>

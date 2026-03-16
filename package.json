@@ -1,0 +1,57 @@
+{
+  "name": "wcag-guide",
+  "private": false,
+  "version": "0.1.0",
+  "description": "Self-hosted WCAG 2.1 compliance scanning, remediation tracking, and AI agent integration via MCP",
+  "type": "module",
+  "license": "MIT",
+  "author": "Jesse Slone",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jesseslone/wcag-guide.git"
+  },
+  "homepage": "https://github.com/jesseslone/wcag-guide",
+  "bugs": {
+    "url": "https://github.com/jesseslone/wcag-guide/issues"
+  },
+  "keywords": [
+    "wcag",
+    "accessibility",
+    "a11y",
+    "compliance",
+    "ada",
+    "title-ii",
+    "axe-core",
+    "mcp",
+    "scanning",
+    "remediation"
+  ],
+  "bin": {
+    "wguide": "./bin/wguide.js"
+  },
+  "scripts": {
+    "start:app": "node src/app/server.js",
+    "start:mcp": "node ./bin/wguide.js mcp",
+    "start:worker": "node src/worker/daemon.js",
+    "start:worker:job": "node src/worker/run.js",
+    "start:demo-site": "node src/demo-site/server.js",
+    "demo:mcp-workflow": "node scripts/mcp/demo-agent-workflow.mjs",
+    "test:e2e": "node scripts/e2e/dashboard-remediation.mjs",
+    "test": "node --test --test-concurrency=1",
+    "migrate": "./scripts/db/migrate.sh",
+    "dev:up": "./scripts/dev/up.sh",
+    "dev:down": "./scripts/dev/down.sh",
+    "smoke": "./scripts/smoke/full-lifecycle.sh",
+    "screenshots": "node scripts/screenshots/capture.mjs"
+  },
+  "dependencies": {
+    "@axe-core/playwright": "4.11.0",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "pg": "8.13.1",
+    "playwright": "1.54.2",
+    "zod": "^4.3.6"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

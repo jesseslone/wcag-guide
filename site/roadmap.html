@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Roadmap — WCAG-Guide</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230e6d66'/%3E%3Cpath d='M18 34c7-2 12-9 14-16 2 7 7 14 14 16-7 2-12 9-14 16-2-7-7-14-14-16Z' fill='%23fffaf1'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a class="logo" href="index.html">
+        <svg viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0e6d66"/><path d="M18 34c7-2 12-9 14-16 2 7 7 14 14 16-7 2-12 9-14 16-2-7-7-14-14-16Z" fill="#fffaf1"/></svg>
+        WCAG-Guide
+      </a>
+      <nav>
+        <a href="quickstart.html">Quickstart</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="mcp.html">MCP</a>
+        <a href="roadmap.html" class="active">Roadmap</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <div class="container">
+      <h1>Roadmap</h1>
+      <p>WCAG-Guide is under active development. This page tracks what's shipped, what's planned, and known limitations.</p>
+
+      <h2>Shipped (v0.1.0)</h2>
+      <ul>
+        <li>axe-core + Playwright scanning engine with configurable compliance profiles</li>
+        <li>REST API for scan targets, scan runs, findings, and status management</li>
+        <li>Web dashboard with light, dark, and code themes</li>
+        <li>MCP server with 12 tools and 6 resource templates (stdio transport)</li>
+        <li>High-Value Target (HVT) grouping with fix-surface clustering</li>
+        <li>Diff-aware triage: new, persistent, resolved states across runs</li>
+        <li>Targeted rescans: page, path, and full site</li>
+        <li>CLI (<code>wguide</code>) with auto-bootstrap of Docker Compose stack</li>
+        <li>PostgreSQL persistence with migration scripts</li>
+        <li>InMemory repository for zero-dependency testing</li>
+        <li>62 passing tests (unit + integration)</li>
+      </ul>
+
+      <h2>Known limitations</h2>
+      <ul>
+        <li><strong>No authentication</strong> &mdash; The API server and dashboard have no auth layer. Intended for local or trusted-network use. Deploy behind a reverse proxy with auth for production.</li>
+        <li><strong>Single worker</strong> &mdash; Only one worker instance is supported. Concurrent scan execution is not yet implemented.</li>
+        <li><strong>No scheduled scans</strong> &mdash; Scans must be triggered manually via the API, dashboard, or MCP. Cron-based scheduling is planned.</li>
+        <li><strong>JavaScript-only scanning</strong> &mdash; The scanner requires JavaScript-rendered pages. Static HTML analysis (without a browser) is not available.</li>
+        <li><strong>No PDF/document scanning</strong> &mdash; Only HTML pages are scanned. PDF accessibility auditing is out of scope for now.</li>
+        <li><strong>MCP stdio only</strong> &mdash; The MCP server uses stdio transport. HTTP/SSE transport is planned for remote agent scenarios.</li>
+      </ul>
+
+      <h2>Planned</h2>
+      <ul>
+        <li><strong>Scheduled scans</strong> &mdash; Cron-based recurring scans with configurable intervals per target.</li>
+        <li><strong>Multi-worker support</strong> &mdash; Job queue with row-level locking for concurrent scan execution.</li>
+        <li><strong>WCAG 2.2 profiles</strong> &mdash; Compliance profiles targeting the latest WCAG 2.2 success criteria.</li>
+        <li><strong>MCP HTTP transport</strong> &mdash; HTTP/SSE transport for remote MCP connections, enabling cloud-hosted agents.</li>
+        <li><strong>Reporting exports</strong> &mdash; PDF and CSV export of scan results and compliance summaries.</li>
+        <li><strong>Webhook notifications</strong> &mdash; Notify external systems (Slack, email, CI) when scans complete or findings change.</li>
+        <li><strong>VPAT generation</strong> &mdash; Automated Voluntary Product Accessibility Template generation from scan data.</li>
+      </ul>
+
+      <h2>Contributing</h2>
+      <p>Contributions are welcome. See <a href="https://github.com/jesseslone/wcag-guide/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a> for guidelines. If you're working on something from the planned list, open an issue first to coordinate.</p>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      WCAG-Guide &mdash; MIT License &mdash; <a href="https://github.com/jesseslone/wcag-guide">GitHub</a>
+    </div>
+  </footer>
+</body>
+</html>

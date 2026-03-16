@@ -1,0 +1,1506 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wcag-guide.local/contracts/mcp-tools.schema.json",
+  "title": "WCAG-Guide MCP Tool Contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "protocol_version",
+    "transport",
+    "capabilities",
+    "tools"
+  ],
+  "properties": {
+    "contract_version": {
+      "const": "mcp-v1"
+    },
+    "protocol_version": {
+      "type": "string",
+      "description": "MCP protocol revision targeted by this contract artifact."
+    },
+    "transport": {
+      "type": "string",
+      "enum": ["stdio"],
+      "description": "Initial transport choice. HTTP transport can be added later as an additive revision."
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tools", "resources"],
+      "properties": {
+        "tools": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["listChanged"],
+          "properties": {
+            "listChanged": {
+              "type": "boolean",
+              "const": false
+            }
+          }
+        },
+        "resources": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["subscribe", "listChanged"],
+          "properties": {
+            "subscribe": {
+              "type": "boolean",
+              "const": false
+            },
+            "listChanged": {
+              "type": "boolean",
+              "const": false
+            }
+          }
+        },
+        "prompts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled"],
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "const": false
+            }
+          }
+        }
+      }
+    },
+    "tools": {
+      "type": "array",
+      "minItems": 12,
+      "items": {
+        "$ref": "#/$defs/tool"
+      },
+      "allOf": [
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "const": "list_compliance_profiles"
+              }
+            },
+            "required": ["name"]
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "const": "list_scan_targets"
+              }
+            },
+            "required": ["name"]
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "const": "upsert_scan_target"
+              }
+            },
+            "required": ["name"]
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "const": "get_target_overview"
+              }
+            },
+            "required": ["name"]
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "const": "list_triage_queue"
+              }
+            },
+            "required": ["name"]
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "const": "get_scan_run_summary"
+              }
+            },
+            "required": ["name"]
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "const": "get_scan_run_hvt_groups"
+              }
+            },
+            "required": ["name"]
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "const": "get_finding_detail"
+              }
+            },
+            "required": ["name"]
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "const": "update_finding_status"
+              }
+            },
+            "required": ["name"]
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "const": "trigger_page_rescan"
+              }
+            },
+            "required": ["name"]
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "const": "trigger_path_rescan"
+              }
+            },
+            "required": ["name"]
+          }
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "const": "trigger_full_scan"
+              }
+            },
+            "required": ["name"]
+          }
+        }
+      ]
+    }
+  },
+  "examples": [
+    {
+      "contract_version": "mcp-v1",
+      "protocol_version": "2025-11-25",
+      "transport": "stdio",
+      "capabilities": {
+        "tools": {
+          "listChanged": false
+        },
+        "resources": {
+          "subscribe": false,
+          "listChanged": false
+        },
+        "prompts": {
+          "enabled": false
+        }
+      },
+      "tools": [
+        {
+          "name": "list_compliance_profiles",
+          "title": "List Compliance Profiles",
+          "description": "Return the API-backed compliance profile catalog and default profile identifier.",
+          "read_only": true,
+          "input_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {}
+          },
+          "output_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["generated_at", "default_profile_id", "items"],
+            "properties": {
+              "generated_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "default_profile_id": {
+                "type": "string"
+              },
+              "items": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "$ref": "#/$defs/compliance_profile"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "list_scan_targets",
+          "title": "List Scan Targets",
+          "description": "Return a cursor-paginated list of configured scan targets filtered by tuple fields.",
+          "read_only": true,
+          "input_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "site_key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "environment": {
+                "type": "string",
+                "minLength": 1
+              },
+              "branch": {
+                "type": "string",
+                "minLength": 1
+              },
+              "cursor": {
+                "type": "string",
+                "minLength": 1
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              }
+            }
+          },
+          "output_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["generated_at", "applied_filters", "items"],
+            "properties": {
+              "generated_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "applied_filters": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["limit"],
+                "properties": {
+                  "site_key": {
+                    "type": ["string", "null"]
+                  },
+                  "environment": {
+                    "type": ["string", "null"]
+                  },
+                  "branch": {
+                    "type": ["string", "null"]
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  }
+                }
+              },
+              "items": {
+                "type": "array",
+                "maxItems": 100,
+                "items": {
+                  "$ref": "#/$defs/scan_target"
+                }
+              },
+              "next_cursor": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "name": "upsert_scan_target",
+          "title": "Upsert Scan Target",
+          "description": "Create or update a scan target tuple with its current base URL.",
+          "read_only": false,
+          "input_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["site_key", "environment", "branch", "base_url"],
+            "properties": {
+              "site_key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "environment": {
+                "type": "string",
+                "minLength": 1
+              },
+              "branch": {
+                "type": "string",
+                "minLength": 1
+              },
+              "base_url": {
+                "type": "string",
+                "format": "uri",
+                "minLength": 1
+              }
+            }
+          },
+          "output_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["generated_at", "scan_target"],
+            "properties": {
+              "generated_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "scan_target": {
+                "$ref": "#/$defs/scan_target"
+              }
+            }
+          }
+        },
+        {
+          "name": "get_target_overview",
+          "title": "Get Target Overview",
+          "description": "Return a compact remediation summary for one site target tuple.",
+          "read_only": true,
+          "input_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["site_key", "environment", "branch"],
+            "properties": {
+              "site_key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "environment": {
+                "type": "string",
+                "minLength": 1
+              },
+              "branch": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "output_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "generated_at",
+              "scan_target",
+              "open_counts",
+              "top_rules",
+              "top_pages"
+            ],
+            "properties": {
+              "generated_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "scan_target": {
+                "$ref": "#/$defs/scan_target"
+              },
+              "latest_completed_run": {
+                "$ref": "#/$defs/run_summary"
+              },
+              "open_counts": {
+                "$ref": "#/$defs/open_counts"
+              },
+              "top_rules": {
+                "$ref": "#/$defs/top_rules"
+              },
+              "top_pages": {
+                "$ref": "#/$defs/top_pages"
+              },
+              "recent_runs": {
+                "type": "array",
+                "maxItems": 5,
+                "items": {
+                  "$ref": "#/$defs/run_summary"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "list_triage_queue",
+          "title": "List Triage Queue",
+          "description": "Return a paginated, token-efficient findings queue for one site target tuple.",
+          "read_only": true,
+          "input_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["site_key", "environment", "branch"],
+            "properties": {
+              "site_key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "environment": {
+                "type": "string",
+                "minLength": 1
+              },
+              "branch": {
+                "type": "string",
+                "minLength": 1
+              },
+              "severity": {
+                "type": "string",
+                "enum": ["critical", "serious", "moderate", "minor"]
+              },
+              "status": {
+                "type": "string",
+                "enum": ["open", "in_progress", "resolved", "ignored"]
+              },
+              "diff_status": {
+                "type": "string",
+                "enum": ["new", "persistent", "resolved"]
+              },
+              "rule_id": {
+                "type": "string"
+              },
+              "path_prefix": {
+                "type": "string"
+              },
+              "cursor": {
+                "type": "string"
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100,
+                "default": 25
+              }
+            }
+          },
+          "output_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "generated_at",
+              "scan_target",
+              "applied_filters",
+              "items"
+            ],
+            "properties": {
+              "generated_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "scan_target": {
+                "$ref": "#/$defs/scan_target"
+              },
+              "applied_filters": {
+                "type": "object"
+              },
+              "items": {
+                "type": "array",
+                "maxItems": 100,
+                "items": {
+                  "$ref": "#/$defs/triage_item"
+                }
+              },
+              "next_cursor": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "name": "get_scan_run_summary",
+          "title": "Get Scan Run Summary",
+          "description": "Return a compact scan run summary with top issue breakdowns.",
+          "read_only": true,
+          "input_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["scan_run_id"],
+            "properties": {
+              "scan_run_id": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          "output_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "generated_at",
+              "run",
+              "top_rules",
+              "top_pages"
+            ],
+            "properties": {
+              "generated_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "run": {
+                "$ref": "#/$defs/run_summary"
+              },
+              "top_rules": {
+                "$ref": "#/$defs/top_rules"
+              },
+              "top_pages": {
+                "$ref": "#/$defs/top_pages"
+              },
+              "hvt_summary": {
+                "$ref": "#/$defs/hvt_summary"
+              },
+              "sample_findings": {
+                "type": "array",
+                "maxItems": 10,
+                "items": {
+                  "$ref": "#/$defs/triage_item"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "get_scan_run_hvt_groups",
+          "title": "Get Scan Run HVT Groups",
+          "description": "Return a compact, run-scoped HVT grouping summary for one scan run.",
+          "read_only": true,
+          "input_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["scan_run_id"],
+            "properties": {
+              "scan_run_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "group_level": {
+                "type": "string",
+                "enum": ["fix_surface_cluster", "component_cluster", "section_cluster"]
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 50,
+                "default": 10
+              }
+            }
+          },
+          "output_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "generated_at",
+              "scan_run_id",
+              "compliance_profile",
+              "group_level",
+              "total_groups",
+              "items"
+            ],
+            "properties": {
+              "generated_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "scan_run_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "compliance_profile": {
+                "$ref": "#/$defs/compliance_profile"
+              },
+              "group_level": {
+                "type": "string",
+                "enum": ["fix_surface_cluster", "component_cluster", "section_cluster"]
+              },
+              "total_groups": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "items": {
+                "type": "array",
+                "maxItems": 50,
+                "items": {
+                  "$ref": "#/$defs/hvt_group_summary"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "get_finding_detail",
+          "title": "Get Finding Detail",
+          "description": "Return one finding with current status, latest evidence, and recent status history.",
+          "read_only": true,
+          "input_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["finding_id"],
+            "properties": {
+              "finding_id": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          },
+          "output_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "generated_at",
+              "finding",
+              "status_history"
+            ],
+            "properties": {
+              "generated_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "finding": {
+                "$ref": "#/$defs/finding_detail"
+              },
+              "status_history": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "$ref": "#/$defs/status_event"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "update_finding_status",
+          "title": "Update Finding Status",
+          "description": "Update one finding status while preserving the existing remediation workflow and audit trail.",
+          "read_only": false,
+          "input_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["finding_id", "status"],
+            "properties": {
+              "finding_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "status": {
+                "type": "string",
+                "enum": ["open", "in_progress", "resolved", "ignored"]
+              },
+              "note": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "ignore_expires_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "output_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "generated_at",
+              "finding",
+              "latest_status_event"
+            ],
+            "properties": {
+              "generated_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "finding": {
+                "$ref": "#/$defs/finding_detail"
+              },
+              "latest_status_event": {
+                "$ref": "#/$defs/status_event"
+              }
+            }
+          }
+        },
+        {
+          "name": "trigger_page_rescan",
+          "title": "Trigger Page Rescan",
+          "description": "Queue a browser scan for one explicit page URL and return the created run handle.",
+          "read_only": false,
+          "input_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["site_key", "environment", "branch", "page_url", "reason"],
+            "properties": {
+              "site_key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "environment": {
+                "type": "string",
+                "minLength": 1
+              },
+              "branch": {
+                "type": "string",
+                "minLength": 1
+              },
+              "page_url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              },
+              "compliance_profile_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "output_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["generated_at", "run"],
+            "properties": {
+              "generated_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "run": {
+                "$ref": "#/$defs/run_summary"
+              }
+            }
+          }
+        },
+        {
+          "name": "trigger_path_rescan",
+          "title": "Trigger Path Rescan",
+          "description": "Queue a browser scan for one explicit path prefix and return the created run handle.",
+          "read_only": false,
+          "input_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["site_key", "environment", "branch", "path_prefix", "reason"],
+            "properties": {
+              "site_key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "environment": {
+                "type": "string",
+                "minLength": 1
+              },
+              "branch": {
+                "type": "string",
+                "minLength": 1
+              },
+              "path_prefix": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              },
+              "compliance_profile_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "output_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["generated_at", "run"],
+            "properties": {
+              "generated_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "run": {
+                "$ref": "#/$defs/run_summary"
+              }
+            }
+          }
+        },
+        {
+          "name": "trigger_full_scan",
+          "title": "Trigger Full Scan",
+          "description": "Queue a full target scan and return the created run handle.",
+          "read_only": false,
+          "input_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["site_key", "environment", "branch", "reason"],
+            "properties": {
+              "site_key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "environment": {
+                "type": "string",
+                "minLength": 1
+              },
+              "branch": {
+                "type": "string",
+                "minLength": 1
+              },
+              "base_url": {
+                "type": "string",
+                "format": "uri",
+                "minLength": 1
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              },
+              "compliance_profile_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "scan_options": {
+                "$ref": "#/$defs/scan_options"
+              }
+            }
+          },
+          "output_schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["generated_at", "run"],
+            "properties": {
+              "generated_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "run": {
+                "$ref": "#/$defs/run_summary"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "$defs": {
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "title",
+        "description",
+        "read_only",
+        "input_schema",
+        "output_schema"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]{1,128}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "read_only": {
+          "type": "boolean"
+        },
+        "input_schema": {
+          "type": "object"
+        },
+        "output_schema": {
+          "type": "object"
+        }
+      }
+    },
+    "compliance_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "version",
+        "standard_target",
+        "axe_tags",
+        "is_default"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "standard_target": {
+          "type": "string"
+        },
+        "axe_tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "is_default": {
+          "type": "boolean"
+        }
+      }
+    },
+    "scan_target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["site_key", "environment", "branch", "base_url"],
+      "properties": {
+        "site_key": {
+          "type": "string"
+        },
+        "environment": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        },
+        "base_url": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "scan_options": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max_pages": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5000
+        },
+        "max_depth": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 20
+        },
+        "concurrency": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "retries": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        }
+      }
+    },
+    "run_summary": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "scan_target", "mode", "state", "summary", "scanner_context"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "scan_target": {
+          "$ref": "#/$defs/scan_target"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["full", "path", "page"]
+        },
+        "state": {
+          "type": "string",
+          "enum": ["queued", "running", "completed", "failed"]
+        },
+        "reason": {
+          "type": ["string", "null"]
+        },
+        "compliance_profile": {
+          "$ref": "#/$defs/compliance_profile"
+        },
+        "scan_options": {
+          "$ref": "#/$defs/scan_options"
+        },
+        "started_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "completed_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "pages_scanned",
+            "findings_total",
+            "new_count",
+            "resolved_count",
+            "persistent_count"
+          ],
+          "properties": {
+            "pages_scanned": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "findings_total": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "new_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "resolved_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "persistent_count": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "scanner_context": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "engine",
+            "engine_version",
+            "browser",
+            "browser_version",
+            "viewport",
+            "user_agent",
+            "fingerprint_version",
+            "normalization_version"
+          ],
+          "properties": {
+            "engine": {
+              "type": "string"
+            },
+            "engine_version": {
+              "type": "string"
+            },
+            "browser": {
+              "type": "string"
+            },
+            "browser_version": {
+              "type": "string"
+            },
+            "viewport": {
+              "type": "string"
+            },
+            "user_agent": {
+              "type": "string"
+            },
+            "fingerprint_version": {
+              "type": "string"
+            },
+            "normalization_version": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "open_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "by_severity", "by_status"],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "by_severity": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "critical": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "serious": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "moderate": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "minor": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "by_status": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "open": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in_progress": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "resolved": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "ignored": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "top_rules": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rule_id", "finding_count", "highest_severity"],
+        "properties": {
+          "rule_id": {
+            "type": "string"
+          },
+          "finding_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "highest_severity": {
+            "type": "string",
+            "enum": ["critical", "serious", "moderate", "minor"]
+          }
+        }
+      }
+    },
+    "top_pages": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["normalized_url", "finding_count", "highest_severity"],
+        "properties": {
+          "normalized_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "finding_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "highest_severity": {
+            "type": "string",
+            "enum": ["critical", "serious", "moderate", "minor"]
+          }
+        }
+      }
+    },
+    "hvt_group_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "group_id",
+        "group_level",
+        "highest_severity",
+        "finding_count",
+        "affected_pages",
+        "representative_rule_id",
+        "representative_url"
+      ],
+      "properties": {
+        "group_id": {
+          "type": "string"
+        },
+        "group_level": {
+          "type": "string",
+          "enum": ["fix_surface_cluster", "component_cluster", "section_cluster"]
+        },
+        "highest_severity": {
+          "type": "string",
+          "enum": ["critical", "serious", "moderate", "minor"]
+        },
+        "finding_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "affected_pages": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "representative_rule_id": {
+          "type": "string"
+        },
+        "representative_url": {
+          "type": ["string", "null"],
+          "format": "uri"
+        },
+        "path_prefix": {
+          "type": ["string", "null"]
+        },
+        "likely_fix_surface": {
+          "type": ["string", "null"]
+        },
+        "suggested_first_look": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "hvt_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["group_level", "total_groups", "items"],
+      "properties": {
+        "group_level": {
+          "type": "string",
+          "enum": ["fix_surface_cluster", "component_cluster", "section_cluster"]
+        },
+        "total_groups": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "$ref": "#/$defs/hvt_group_summary"
+          }
+        }
+      }
+    },
+    "triage_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finding_id",
+        "rule_id",
+        "severity",
+        "status",
+        "latest_instance"
+      ],
+      "properties": {
+        "finding_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "rule_id": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "serious", "moderate", "minor"]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["open", "in_progress", "resolved", "ignored"]
+        },
+        "diff_status": {
+          "type": "string",
+          "enum": ["new", "persistent", "resolved"]
+        },
+        "latest_instance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["normalized_url", "selector_excerpt", "detected_at"],
+          "properties": {
+            "normalized_url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "selector_excerpt": {
+              "type": "string",
+              "maxLength": 240
+            },
+            "detected_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      }
+    },
+    "finding_detail": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "rule_id",
+        "severity",
+        "status",
+        "scan_target",
+        "latest_instance"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "rule_id": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "serious", "moderate", "minor"]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["open", "in_progress", "resolved", "ignored"]
+        },
+        "ignore_expires_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "scan_target": {
+          "$ref": "#/$defs/scan_target"
+        },
+        "rule_metadata": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["rule_id", "rule_tags"],
+          "properties": {
+            "rule_id": {
+              "type": "string"
+            },
+            "rule_help": {
+              "type": ["string", "null"]
+            },
+            "rule_description": {
+              "type": ["string", "null"]
+            },
+            "rule_help_url": {
+              "type": ["string", "null"],
+              "format": "uri"
+            },
+            "rule_tags": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "latest_instance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "id",
+            "scan_run_id",
+            "page_url",
+            "normalized_url",
+            "selector",
+            "snippet",
+            "detected_at"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "scan_run_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "page_url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "normalized_url": {
+              "type": "string",
+              "format": "uri"
+            },
+            "selector": {
+              "type": "string"
+            },
+            "snippet": {
+              "type": "string"
+            },
+            "failure_summary": {
+              "type": ["string", "null"]
+            },
+            "detected_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        }
+      }
+    },
+    "status_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "previous_status",
+        "new_status",
+        "note",
+        "changed_by",
+        "changed_at"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "previous_status": {
+          "type": "string",
+          "enum": ["open", "in_progress", "resolved", "ignored"]
+        },
+        "new_status": {
+          "type": "string",
+          "enum": ["open", "in_progress", "resolved", "ignored"]
+        },
+        "note": {
+          "type": ["string", "null"]
+        },
+        "ignore_expires_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "changed_by": {
+          "type": "string"
+        },
+        "changed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

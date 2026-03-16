@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quickstart — WCAG-Guide</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230e6d66'/%3E%3Cpath d='M18 34c7-2 12-9 14-16 2 7 7 14 14 16-7 2-12 9-14 16-2-7-7-14-14-16Z' fill='%23fffaf1'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a class="logo" href="index.html">
+        <svg viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0e6d66"/><path d="M18 34c7-2 12-9 14-16 2 7 7 14 14 16-7 2-12 9-14 16-2-7-7-14-14-16Z" fill="#fffaf1"/></svg>
+        WCAG-Guide
+      </a>
+      <nav>
+        <a href="quickstart.html" class="active">Quickstart</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="mcp.html">MCP</a>
+        <a href="roadmap.html">Roadmap</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <div class="container">
+      <h1>Quickstart</h1>
+      <p>Get WCAG-Guide running locally in under five minutes.</p>
+
+      <h2>Prerequisites</h2>
+      <ul>
+        <li><strong>Docker</strong> and <strong>Docker Compose</strong> (v2)</li>
+        <li><strong>Node.js 20+</strong> (only needed for the CLI or MCP server)</li>
+      </ul>
+
+      <h2>Option A: Docker Compose (full stack)</h2>
+      <p>This starts the API server, worker, PostgreSQL database, and a bundled demo site.</p>
+
+      <h3>1. Clone and start</h3>
+<pre><code>git clone https://github.com/jesseslone/wcag-guide.git
+cd wcag-guide
+./scripts/dev/up.sh</code></pre>
+
+      <h3>2. Open the dashboard</h3>
+      <p>Navigate to <code>http://127.0.0.1:8080/dashboard</code> in your browser.</p>
+
+      <h3>3. Launch your first scan</h3>
+      <p>Use the "Add site + start scan" button in the dashboard, or run:</p>
+<pre><code>curl -fsS -X POST http://127.0.0.1:8080/scan-runs \
+  -H "content-type: application/json" \
+  -d '{
+    "scan_target": {
+      "site_key": "demo-site",
+      "environment": "local",
+      "branch": "main",
+      "base_url": "http://demo-site:8081"
+    }
+  }'</code></pre>
+      <p>The worker picks up the job, crawls the demo site with Playwright + axe-core, and writes findings to the database. Refresh the dashboard to see results.</p>
+
+      <h3>4. Scan your own site</h3>
+      <p>Replace the <code>base_url</code> with any publicly accessible URL. Use <code>site_key</code>, <code>environment</code>, and <code>branch</code> to organize your targets.</p>
+
+      <h3>5. Stop the stack</h3>
+<pre><code># Stops containers but keeps your scan data
+./scripts/dev/down.sh
+
+# Removes everything including the database volume
+./scripts/dev/down.sh --purge</code></pre>
+
+      <h2>Option B: CLI + MCP server</h2>
+      <p>If you want to use WCAG-Guide with an AI agent (Claude Code, OpenCode, etc.), start the MCP server from the repo root:</p>
+
+<pre><code># From the cloned repo (no global install required)
+node bin/wguide.js mcp
+
+# Or, after running `npm link` from the repo root
+wguide mcp
+
+# Or, once published to npm
+npx wcag-guide mcp</code></pre>
+
+      <p>The MCP server connects via stdio and requires Docker to be running. It auto-bootstraps the Docker Compose stack if not already running. See the <a href="mcp.html">MCP page</a> for client configuration.</p>
+
+      <h2>Configuration</h2>
+      <p>Environment variables control the CLI behavior:</p>
+      <table class="tool-table">
+        <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>WGUIDE_BOOTSTRAP</code></td><td><code>auto</code></td><td>Bootstrap mode: <code>auto</code>, <code>always</code>, or <code>never</code></td></tr>
+          <tr><td><code>WGUIDE_APP_BASE_URL</code></td><td><code>http://127.0.0.1:8080</code></td><td>Base URL for the API server</td></tr>
+          <tr><td><code>WGUIDE_WAIT_SECONDS</code></td><td><code>90</code></td><td>Seconds to wait for the API server health check</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      WCAG-Guide &mdash; MIT License &mdash; <a href="https://github.com/jesseslone/wcag-guide">GitHub</a>
+    </div>
+  </footer>
+</body>
+</html>

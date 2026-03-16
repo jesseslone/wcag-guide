@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WCAG-Guide — Self-hosted WCAG 2.1 Compliance Tracking</title>
+  <meta name="description" content="Free, open-source WCAG 2.1 compliance scanner and remediation tracker. Built for government teams who need accessible websites.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230e6d66'/%3E%3Cpath d='M18 34c7-2 12-9 14-16 2 7 7 14 14 16-7 2-12 9-14 16-2-7-7-14-14-16Z' fill='%23fffaf1'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a class="logo" href="index.html">
+        <svg viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0e6d66"/><path d="M18 34c7-2 12-9 14-16 2 7 7 14 14 16-7 2-12 9-14 16-2-7-7-14-14-16Z" fill="#fffaf1"/></svg>
+        WCAG-Guide
+      </a>
+      <nav>
+        <a href="quickstart.html">Quickstart</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="mcp.html">MCP</a>
+        <a href="roadmap.html">Roadmap</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>Self-hosted WCAG&nbsp;2.1 compliance tracking</h1>
+        <p class="subtitle">Free, open-source accessibility scanner and remediation tracker. Built for government teams who need accessible websites but can't afford commercial tools.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="quickstart.html">Get started</a>
+          <a class="btn btn-secondary" href="https://github.com/jesseslone/wcag-guide">View on GitHub</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="gallery">
+      <div class="container">
+        <div class="gallery-grid">
+          <figure class="gallery-item">
+            <img src="screenshots/runs-list-light.png" alt="Run list view in light theme" loading="lazy">
+            <figcaption>Scan runs overview &mdash; light theme</figcaption>
+          </figure>
+          <figure class="gallery-item">
+            <img src="screenshots/run-detail-dark.png" alt="Run detail view in dark theme" loading="lazy">
+            <figcaption>Run detail with HVT groups &mdash; dark theme</figcaption>
+          </figure>
+          <figure class="gallery-item">
+            <img src="screenshots/finding-detail-code.png" alt="Finding detail in code theme" loading="lazy">
+            <figcaption>Finding detail &mdash; code theme</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="container">
+        <h2>What you get</h2>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h3>Automated WCAG scanning</h3>
+            <p>Browser-based accessibility scans powered by axe-core and Playwright. Configurable compliance profiles for WCAG 2.1 Level A, AA, and AAA.</p>
+          </div>
+          <div class="feature-card">
+            <h3>Remediation dashboard</h3>
+            <p>Web UI for reviewing findings, updating statuses, and tracking progress across scan runs. Three themes: light, dark, and code.</p>
+          </div>
+          <div class="feature-card">
+            <h3>MCP server for AI agents</h3>
+            <p>Expose scanning, triage, and remediation tools to LLM-based agents via the Model Context Protocol. Works with Claude Code, OpenCode, and other MCP clients.</p>
+          </div>
+          <div class="feature-card">
+            <h3>High-Value Target grouping</h3>
+            <p>Findings grouped by rule, page, or path to prioritize the most impactful fixes. Root-cause clusters help teams fix related issues together.</p>
+          </div>
+          <div class="feature-card">
+            <h3>Diff-aware triage</h3>
+            <p>Track new, fixed, and recurring findings across successive scan runs. Know what changed without manually comparing reports.</p>
+          </div>
+          <div class="feature-card">
+            <h3>Self-hosted and free</h3>
+            <p>Runs on your own infrastructure with Docker Compose. No API keys, no vendor lock-in, no per-scan pricing. MIT licensed.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      WCAG-Guide &mdash; MIT License &mdash; <a href="https://github.com/jesseslone/wcag-guide">GitHub</a>
+    </div>
+  </footer>
+</body>
+</html>

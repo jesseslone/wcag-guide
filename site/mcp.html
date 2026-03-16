@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MCP Integration — WCAG-Guide</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230e6d66'/%3E%3Cpath d='M18 34c7-2 12-9 14-16 2 7 7 14 14 16-7 2-12 9-14 16-2-7-7-14-14-16Z' fill='%23fffaf1'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a class="logo" href="index.html">
+        <svg viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0e6d66"/><path d="M18 34c7-2 12-9 14-16 2 7 7 14 14 16-7 2-12 9-14 16-2-7-7-14-14-16Z" fill="#fffaf1"/></svg>
+        WCAG-Guide
+      </a>
+      <nav>
+        <a href="quickstart.html">Quickstart</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="mcp.html" class="active">MCP</a>
+        <a href="roadmap.html">Roadmap</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <div class="container">
+      <h1>MCP Integration</h1>
+      <p>WCAG-Guide includes a Model Context Protocol (MCP) server that exposes accessibility scanning and remediation tools to AI agents. This lets an LLM-based agent autonomously scan sites, triage findings, update statuses, and trigger rescans.</p>
+
+      <h2>Starting the MCP server</h2>
+      <p><strong>Prerequisite:</strong> Docker must be running. The MCP server auto-bootstraps the Docker Compose stack if it is not already running.</p>
+<pre><code># From the cloned repo (no global install required)
+node bin/wguide.js mcp
+
+# Or, after `npm link` from the repo root
+wguide mcp
+
+# Or, once published to npm
+npx wcag-guide mcp</code></pre>
+      <p>The server connects via stdio transport. Use <code>--no-bootstrap</code> to disable auto-bootstrap, or <code>--bootstrap=always</code> to force it.</p>
+      <p>The MCP server surfaces a <code>dashboard_url</code> field in key responses (scan triggers, target overview, run summary) so agents can direct users to <code>http://localhost:8080/dashboard</code> to review findings visually.</p>
+
+      <h2>Client configuration</h2>
+
+      <h3>Claude Code</h3>
+      <p>Add to your project's <code>.mcp.json</code>:</p>
+<pre><code>{
+  "mcpServers": {
+    "wcag-guide": {
+      "command": "node",
+      "args": ["/absolute/path/to/wcag-guide/bin/wguide.js", "mcp"]
+    }
+  }
+}</code></pre>
+
+      <h3>OpenCode</h3>
+      <p>Add to <code>~/.config/opencode/opencode.json</code>:</p>
+<pre><code>{
+  "mcpServers": {
+    "wcag-guide": {
+      "command": "node",
+      "args": ["/absolute/path/to/wcag-guide/bin/wguide.js", "mcp", "--no-bootstrap"],
+      "env": {
+        "WGUIDE_APP_BASE_URL": "http://127.0.0.1:8080"
+      }
+    }
+  }
+}</code></pre>
+
+      <h3>Other MCP clients</h3>
+      <p>Any MCP client that supports stdio transport can connect. Point it at the absolute path to <code>bin/wguide.js mcp</code>.</p>
+
+      <h2>Available tools</h2>
+      <table class="tool-table">
+        <thead>
+          <tr><th>Tool</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>list_compliance_profiles</code></td>
+            <td>List available compliance profiles (WCAG 2.1 A, AA, AAA targets) and identify the default.</td>
+          </tr>
+          <tr>
+            <td><code>list_scan_targets</code></td>
+            <td>List registered scan targets, optionally filtered by site key, environment, or branch.</td>
+          </tr>
+          <tr>
+            <td><code>upsert_scan_target</code></td>
+            <td>Create or update a scan target (site key + environment + branch + base URL).</td>
+          </tr>
+          <tr>
+            <td><code>get_target_overview</code></td>
+            <td>Get a compact remediation summary for one scan target: latest run state, open finding counts by severity, and recent trend.</td>
+          </tr>
+          <tr>
+            <td><code>list_triage_queue</code></td>
+            <td>Paginated list of findings for a target, filterable by status, severity, diff state, rule ID, and URL path prefix.</td>
+          </tr>
+          <tr>
+            <td><code>get_scan_run_summary</code></td>
+            <td>Detailed summary of one scan run: pages scanned, finding counts, diff breakdown, scanner context.</td>
+          </tr>
+          <tr>
+            <td><code>get_scan_run_hvt_groups</code></td>
+            <td>High-Value Target groupings for a run. Groups findings by rule + path cluster to identify root-cause patterns.</td>
+          </tr>
+          <tr>
+            <td><code>get_finding_detail</code></td>
+            <td>Full evidence for one finding: latest instance snippet, selector, page URL, rule metadata, and status history.</td>
+          </tr>
+          <tr>
+            <td><code>update_finding_status</code></td>
+            <td>Transition a finding's status (open, in_progress, resolved, ignored). Ignored findings require an expiration date.</td>
+          </tr>
+          <tr>
+            <td><code>trigger_page_rescan</code></td>
+            <td>Re-scan a single page URL to verify a fix.</td>
+          </tr>
+          <tr>
+            <td><code>trigger_path_rescan</code></td>
+            <td>Re-scan all pages under a URL path prefix.</td>
+          </tr>
+          <tr>
+            <td><code>trigger_full_scan</code></td>
+            <td>Trigger a full crawl + scan of the entire site.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Resource templates</h2>
+      <p>The MCP server also exposes read-only resources via <code>wcag-guide://</code> URIs:</p>
+      <table class="tool-table">
+        <thead>
+          <tr><th>URI template</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>wcag-guide://compliance-profiles</code></td>
+            <td>Compliance profile catalog</td>
+          </tr>
+          <tr>
+            <td><code>wcag-guide://targets/{site_key}/{env}/{branch}/summary</code></td>
+            <td>Target remediation summary</td>
+          </tr>
+          <tr>
+            <td><code>wcag-guide://scan-runs/{id}/summary</code></td>
+            <td>Scan run summary</td>
+          </tr>
+          <tr>
+            <td><code>wcag-guide://scan-runs/{id}/hvt-groups?...</code></td>
+            <td>HVT groupings for a run</td>
+          </tr>
+          <tr>
+            <td><code>wcag-guide://findings/{id}</code></td>
+            <td>Finding detail with evidence</td>
+          </tr>
+          <tr>
+            <td><code>wcag-guide://queues/{site_key}/{env}/{branch}?...</code></td>
+            <td>Paginated triage queue</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Example agent workflow</h2>
+      <p>A typical AI agent session might look like:</p>
+      <ol>
+        <li>Call <code>list_scan_targets</code> to discover registered sites</li>
+        <li>Call <code>trigger_full_scan</code> to start a new scan</li>
+        <li>Poll <code>get_scan_run_summary</code> until the run completes</li>
+        <li>Call <code>get_scan_run_hvt_groups</code> to identify high-impact clusters</li>
+        <li>Call <code>list_triage_queue</code> to see findings sorted by severity</li>
+        <li>Call <code>get_finding_detail</code> for the most critical findings</li>
+        <li>Fix the code, then call <code>trigger_page_rescan</code> to verify</li>
+        <li>Call <code>update_finding_status</code> to mark findings as resolved</li>
+      </ol>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      WCAG-Guide &mdash; MIT License &mdash; <a href="https://github.com/jesseslone/wcag-guide">GitHub</a>
+    </div>
+  </footer>
+</body>
+</html>

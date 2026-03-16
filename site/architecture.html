@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Architecture — WCAG-Guide</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230e6d66'/%3E%3Cpath d='M18 34c7-2 12-9 14-16 2 7 7 14 14 16-7 2-12 9-14 16-2-7-7-14-14-16Z' fill='%23fffaf1'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a class="logo" href="index.html">
+        <svg viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#0e6d66"/><path d="M18 34c7-2 12-9 14-16 2 7 7 14 14 16-7 2-12 9-14 16-2-7-7-14-14-16Z" fill="#fffaf1"/></svg>
+        WCAG-Guide
+      </a>
+      <nav>
+        <a href="quickstart.html">Quickstart</a>
+        <a href="architecture.html" class="active">Architecture</a>
+        <a href="mcp.html">MCP</a>
+        <a href="roadmap.html">Roadmap</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-content">
+    <div class="container">
+      <h1>Architecture</h1>
+      <p>WCAG-Guide is a Node.js application with four services orchestrated by Docker Compose.</p>
+
+      <h2>Service diagram</h2>
+<div class="diagram">
+┌─────────────────────────────────────────────────────────────────────┐
+│  MCP Client (Claude Code, OpenCode, etc.)                          │
+│  ── stdio ──► wguide mcp ── HTTP ──┐                               │
+└────────────────────────────────────┼───────────────────────────────┘
+                                     │
+┌────────────────────────────────────┼───────────────────────────────┐
+│  Docker Compose                    ▼                               │
+│  ┌──────────────────────────────────────────┐                      │
+│  │  App Server (Node.js)        :8080       │                      │
+│  │  ├─ REST API                             │                      │
+│  │  ├─ Dashboard (vanilla JS SPA)           │                      │
+│  │  └─ Health check  /healthz               │                      │
+│  └──────────────────────┬───────────────────┘                      │
+│                         │ SQL                                      │
+│  ┌──────────────────────▼───────────────────┐                      │
+│  │  PostgreSQL                  :5432       │                      │
+│  │  ├─ scan_targets, scan_runs              │                      │
+│  │  ├─ findings, finding_instances          │                      │
+│  │  └─ status_events, rule_metadata         │                      │
+│  └──────────────────────▲───────────────────┘                      │
+│                         │ SQL                                      │
+│  ┌──────────────────────┴───────────────────┐                      │
+│  │  Worker (Node.js)                        │                      │
+│  │  ├─ Polls for queued scan runs           │                      │
+│  │  ├─ Playwright + axe-core scanner        │                      │
+│  │  └─ Writes findings back to DB           │                      │
+│  └──────────────────────────────────────────┘                      │
+│                                                                    │
+│  ┌──────────────────────────────────────────┐                      │
+│  │  Demo Site (static)          :8081       │                      │
+│  │  └─ Intentionally flawed HTML pages      │                      │
+│  └──────────────────────────────────────────┘                      │
+└────────────────────────────────────────────────────────────────────┘
+</div>
+
+      <h2>Data flow</h2>
+      <ol>
+        <li><strong>Scan target registration</strong> &mdash; A user or MCP agent creates a scan target via the REST API (site key + environment + branch + base URL).</li>
+        <li><strong>Scan run creation</strong> &mdash; A POST to <code>/scan-runs</code> queues a scan job. The job record includes scan options (max pages, depth, concurrency) and the compliance profile.</li>
+        <li><strong>Worker picks up job</strong> &mdash; The worker polls for <code>queued</code> runs, transitions them to <code>running</code>, and starts the Playwright browser.</li>
+        <li><strong>Crawl + scan</strong> &mdash; The worker crawls from the base URL, discovers internal links, and runs axe-core on each page. Findings are fingerprinted for deduplication.</li>
+        <li><strong>Results written</strong> &mdash; Finding instances are written to PostgreSQL. The worker computes diff states (new, persistent, resolved) by comparing with prior runs.</li>
+        <li><strong>Triage + remediation</strong> &mdash; Users or agents review findings in the dashboard or via MCP tools. Findings can be marked as <code>in_progress</code>, <code>resolved</code>, or <code>ignored</code> (with expiration).</li>
+        <li><strong>Rescan</strong> &mdash; Targeted rescans (page, path, or full) verify fixes without re-crawling the entire site.</li>
+      </ol>
+
+      <h2>Key design decisions</h2>
+      <ul>
+        <li><strong>Vanilla JS dashboard</strong> &mdash; No build step, no framework. The dashboard is a single HTML file, a CSS file, and a JS file served directly by the app server. This keeps the deployment simple and the bundle size near zero.</li>
+        <li><strong>Contract-driven MCP</strong> &mdash; Tool schemas are defined in <code>contracts/mcp-tools.schema.json</code> and validated by tests. The MCP server reads this contract at startup, ensuring tools always match the spec.</li>
+        <li><strong>Fingerprint-based deduplication</strong> &mdash; Each finding gets a stable fingerprint (rule + selector + URL path). This enables diff tracking across runs without requiring exact DOM matching.</li>
+        <li><strong>InMemoryRepository for testing</strong> &mdash; The same service layer backs both the production PostgreSQL repository and an in-memory repository used by unit tests and the screenshot generator.</li>
+      </ul>
+
+      <h2>Directory structure</h2>
+<pre><code>wcag-guide/
+├── bin/                    CLI entry point
+├── contracts/              OpenAPI spec, MCP tool schema
+├── scripts/
+│   ├── db/                 Database migrations
+│   ├── dev/                Docker Compose helpers
+│   ├── screenshots/        Screenshot capture script
+│   └── mcp/                MCP demo workflow
+├── site/                   GitHub Pages static site
+├── src/
+│   ├── app/                App server, REST API, dashboard
+│   │   ├── public/         Dashboard HTML/CSS/JS
+│   │   └── repositories/   PostgreSQL + InMemory repos
+│   ├── cli/                CLI command parser
+│   ├── mcp/                MCP server, adapter, catalog
+│   └── worker/             Scan worker, crawler, scanners
+├── test/                   Unit + integration tests
+└── test-support/           Shared fixtures</code></pre>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      WCAG-Guide &mdash; MIT License &mdash; <a href="https://github.com/jesseslone/wcag-guide">GitHub</a>
+    </div>
+  </footer>
+</body>
+</html>

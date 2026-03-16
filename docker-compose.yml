@@ -1,0 +1,82 @@
+services:
+  db:
+    image: postgres:16.4-alpine
+    container_name: wcag_guide_db
+    environment:
+      POSTGRES_DB: wcag_guide
+      POSTGRES_USER: wcag_guide
+      POSTGRES_PASSWORD: wcag_guide
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./:/workspace:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wcag_guide -d wcag_guide"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    container_name: wcag_guide_app
+    working_dir: /workspace
+    command: ["bash", "-lc", "npm run start:app"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://wcag_guide:wcag_guide@db:5432/wcag_guide
+      PORT: 8080
+    volumes:
+      - ./:/workspace
+      - /workspace/node_modules
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:8080/healthz').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    container_name: wcag_guide_worker
+    working_dir: /workspace
+    command: ["bash", "-lc", "npm run start:worker"]
+    depends_on:
+      db:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+      demo-site:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgres://wcag_guide:wcag_guide@db:5432/wcag_guide
+      WORKER_POLL_INTERVAL_MS: 1000
+    volumes:
+      - ./:/workspace
+      - /workspace/node_modules
+
+  demo-site:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    container_name: wcag_guide_demo_site
+    working_dir: /workspace
+    command: ["bash", "-lc", "npm run start:demo-site"]
+    environment:
+      DATABASE_URL: postgres://wcag_guide:wcag_guide@db:5432/wcag_guide
+      DEMO_SITE_PORT: 8081
+    volumes:
+      - ./:/workspace
+      - /workspace/node_modules
+    ports:
+      - "8081:8081"
+
+volumes:
+  pgdata:
