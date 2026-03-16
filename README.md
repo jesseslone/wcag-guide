@@ -24,7 +24,7 @@ It's a self-hosted alternative to commercial platforms like Siteimprove, Deque, 
 ## Features
 
 - **Automated WCAG scanning** -- Browser-based accessibility scans powered by axe-core and Playwright, with configurable compliance profiles (WCAG 2.1 A/AA).
-- **Remediation dashboard** -- Web UI for reviewing findings, updating statuses, and tracking remediation progress across scan runs.
+- **Remediation dashboard** -- Web UI for reviewing findings, updating statuses, and tracking remediation progress across scan runs. Page URLs link directly to the affected page; selectors and code snippets copy to clipboard on click for quick pasting into your editor's find feature.
 - **MCP server for AI agents** -- Expose scanning, triage, and remediation tools to LLM-based agents via the Model Context Protocol (stdio transport).
 - **Compliance profiles** -- Built-in profiles for WCAG 2.1 Level A, AA, and AAA conformance targets.
 - **High-Value Target (HVT) grouping** -- Findings grouped by rule, page, or path to prioritize the most impactful fixes.
