@@ -23,6 +23,9 @@
 - Verify the local target is reachable:
   `curl -fsS http://127.0.0.1:8081/`
 
+## Windows (Git Bash): migration path error
+- If you see an error like `C:/Program Files/Git/workspace/db/migrations/0001_init.sql: No such file or directory`, Git Bash's MSYS path conversion is rewriting container-internal paths. This is fixed in the migrate script via `MSYS_NO_PATHCONV=1`. If you still hit it, prefix any `docker compose exec` command with `MSYS_NO_PATHCONV=1`.
+
 ## Database migration or seed step fails
 - If host `psql` is not installed, the scripts automatically fall back to `docker compose exec`.
 - If Docker is unavailable, use a local Postgres instance and export:

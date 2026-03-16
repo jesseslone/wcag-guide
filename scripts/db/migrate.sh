@@ -24,7 +24,9 @@ psql_exec_docker() {
 }
 
 psql_file_docker() {
-  docker compose exec -T db psql -U "${DB_USER:-wcag_guide}" -d "${DB_NAME:-wcag_guide}" -v ON_ERROR_STOP=1 -f "/workspace/$1"
+  # MSYS_NO_PATHCONV prevents Git Bash on Windows from rewriting the
+  # container-internal /workspace/ path to a Windows path like C:/Program Files/Git/...
+  MSYS_NO_PATHCONV=1 docker compose exec -T db psql -U "${DB_USER:-wcag_guide}" -d "${DB_NAME:-wcag_guide}" -v ON_ERROR_STOP=1 -f "/workspace/$1"
 }
 
 ensure_schema_migrations() {

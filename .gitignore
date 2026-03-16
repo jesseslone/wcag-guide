@@ -8,3 +8,5 @@ docs/agentic-build/
 .DS_Store
 npm-debug.log*
 .claude/
+certs/*.crt
+certs/*.pem

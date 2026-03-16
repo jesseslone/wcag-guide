@@ -8,6 +8,15 @@ ENV SCANNER_USER_AGENT=wcag-guide-worker/0.1.0
 ENV PLAYWRIGHT_VERSION=1.54.2
 ENV AXE_CORE_VERSION=4.11.0
 
+# --- Custom CA certificates (enterprise environments) ---
+# Drop PEM bundles into certs/ and they will be trusted by Node, Playwright, and Chromium.
+COPY certs/ /tmp/custom-certs/
+RUN find /tmp/custom-certs -name '*.crt' -o -name '*.pem' | \
+    xargs -I{} cp {} /usr/local/share/ca-certificates/ 2>/dev/null; \
+    update-ca-certificates 2>/dev/null || true; \
+    rm -rf /tmp/custom-certs
+ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
+
 COPY package.json package-lock.json* ./
 RUN npm install --no-fund --no-audit
 
