@@ -89,6 +89,7 @@ const state = {
     submitting: false,
     error: "",
     deleteRun: null,
+    isRescan: false,
     newScan: {
       site_key: "",
       environment: "local",
@@ -949,13 +950,13 @@ function renderRunDetailView() {
       <div class="panel panel-stack-gap">
         <h3>Rescan Actions</h3>
         <div class="rescan-grid">
-          <form id="full-rescan-form" class="panel">
+          <div class="panel">
             <h3>Full target</h3>
-            ${renderField({ label: "Reason", name: "full_reason", value: runDetail.rescanForms.full.reason, placeholder: "Nightly baseline, release check, regression sweep" })}
+            <p class="hint">Re-run a full scan with current options or adjust settings before launching.</p>
             <div class="actions">
-              <button class="button-primary" type="submit" ${runDetail.rescanSubmitting === "full" ? "disabled" : ""}>${runDetail.rescanSubmitting === "full" ? "Launching..." : "Launch full rescan"}</button>
+              <button class="button-primary" type="button" data-action="open-rescan-modal">Launch full rescan</button>
             </div>
-          </form>
+          </div>
           <form id="path-rescan-form" class="panel">
             <h3>Path prefix</h3>
             ${renderField({ label: "Path prefix", name: "path_prefix", value: runDetail.rescanForms.path.path_prefix, placeholder: "/forms" })}
@@ -1257,6 +1258,7 @@ function renderModal() {
   }
 
   const form = modal.newScan;
+  const isRescan = modal.isRescan;
   const profileOptions = state.complianceProfiles.items.map((profile) => ({
     value: profile.id,
     label: profile.label
@@ -1267,12 +1269,12 @@ function renderModal() {
       <div class="modal-panel modal-panel--wide" role="dialog" aria-modal="true" aria-labelledby="new-scan-title" data-modal-panel>
         <div class="modal-head">
           <div>
-            <p class="eyebrow">Add Site</p>
-            <h2 id="new-scan-title">Add a site and start a scan</h2>
+            <p class="eyebrow">${isRescan ? "Full Rescan" : "Add Site"}</p>
+            <h2 id="new-scan-title">${isRescan ? "Launch a full rescan" : "Add a site and start a scan"}</h2>
           </div>
           <button class="button-secondary button-inline" type="button" data-action="close-modal">Close</button>
         </div>
-        <p class="hint">A scan target is created or updated from this form, then the first full scan is queued immediately.</p>
+        <p class="hint">${isRescan ? "Review or adjust scan options, then launch a full rescan of the target." : "A scan target is created or updated from this form, then the first full scan is queued immediately."}</p>
         <form id="new-scan-form" class="toolbar">
           <div class="filter-grid">
             ${renderField({ label: "Site key", name: "site_key", value: form.site_key, placeholder: "my-site" })}
@@ -1303,7 +1305,7 @@ function renderModal() {
           ${modal.error ? renderError("Scan launch failed", modal.error) : ""}
           <div class="actions modal-actions">
             <button class="button-secondary" type="button" data-action="close-modal">Cancel</button>
-            <button class="button-primary" type="submit" ${modal.submitting ? "disabled" : ""}>${modal.submitting ? "Launching..." : "Add site + start scan"}</button>
+            <button class="button-primary" type="submit" ${modal.submitting ? "disabled" : ""}>${modal.submitting ? "Launching..." : isRescan ? "Start scan" : "Add site + start scan"}</button>
           </div>
         </form>
       </div>
@@ -1378,9 +1380,10 @@ function openDeleteRunModal(runId) {
   render();
 }
 
-function openNewScanModal() {
+function openNewScanModal({ rescan = false } = {}) {
   const currentRun = state.runDetail.run;
   if (currentRun) {
+    const opts = currentRun.scan_options ?? {};
     state.modal.newScan = {
       ...state.modal.newScan,
       site_key: currentRun.scan_target.site_key,
@@ -1388,12 +1391,18 @@ function openNewScanModal() {
       branch: currentRun.scan_target.branch,
       base_url: currentRun.scan_target.base_url,
       compliance_profile_id: currentRun.compliance_profile?.id ?? state.modal.newScan.compliance_profile_id,
-      max_pages: currentRun.scan_options?.max_pages ?? state.modal.newScan.max_pages,
-      max_depth: currentRun.scan_options?.max_depth ?? state.modal.newScan.max_depth,
-      concurrency: currentRun.scan_options?.concurrency ?? state.modal.newScan.concurrency,
-      retries: currentRun.scan_options?.retries ?? state.modal.newScan.retries
+      max_pages: opts.max_pages ?? state.modal.newScan.max_pages,
+      max_depth: opts.max_depth ?? state.modal.newScan.max_depth,
+      concurrency: opts.concurrency ?? state.modal.newScan.concurrency,
+      retries: opts.retries ?? state.modal.newScan.retries,
+      path_allowlist: Array.isArray(opts.path_allowlist) ? opts.path_allowlist.join("\n") : state.modal.newScan.path_allowlist,
+      path_denylist: Array.isArray(opts.path_denylist) ? opts.path_denylist.join("\n") : state.modal.newScan.path_denylist
     };
+    if (rescan) {
+      state.modal.newScan.reason = "";
+    }
   }
+  state.modal.isRescan = rescan;
 
   if (!state.modal.newScan.compliance_profile_id) {
     state.modal.newScan.compliance_profile_id = state.complianceProfiles.defaultProfileId;
@@ -1413,6 +1422,7 @@ function closeModal() {
   state.modal.error = "";
   state.modal.submitting = false;
   state.modal.deleteRun = null;
+  state.modal.isRescan = false;
   render();
 }
 
@@ -1806,9 +1816,6 @@ function updateFormState(formId, values) {
   if (formId === "status-update-form") {
     state.findingDetail.form = { ...state.findingDetail.form, ...values };
   }
-  if (formId === "full-rescan-form") {
-    state.runDetail.rescanForms.full.reason = values.full_reason ?? state.runDetail.rescanForms.full.reason;
-  }
   if (formId === "path-rescan-form") {
     state.runDetail.rescanForms.path = {
       ...state.runDetail.rescanForms.path,
@@ -1891,6 +1898,11 @@ function attachEvents() {
 
     if (action === "open-new-scan-modal") {
       openNewScanModal();
+      return;
+    }
+
+    if (action === "open-rescan-modal") {
+      openNewScanModal({ rescan: true });
       return;
     }
 
@@ -1998,11 +2010,6 @@ function attachEvents() {
 
     if (form.id === "status-update-form") {
       await submitStatusUpdate();
-      return;
-    }
-
-    if (form.id === "full-rescan-form") {
-      await launchRescan("full");
       return;
     }
 
