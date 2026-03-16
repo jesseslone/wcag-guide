@@ -15,7 +15,7 @@ done
 ./scripts/dev/seed-demo-target.sh
 docker compose up -d app worker
 
-until node -e "fetch('http://127.0.0.1:8080/healthz').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"; do
+until curl -fsS http://127.0.0.1:8080/healthz >/dev/null 2>&1; do
   sleep 1
 done
 
