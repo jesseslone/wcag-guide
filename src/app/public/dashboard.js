@@ -177,6 +177,22 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    // brief visual feedback handled via CSS animation
+  }).catch(() => {
+    // fallback: select-all in a temp textarea
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+  });
+}
+
 function formatDateTime(value) {
   if (!value) {
     return "Not finished";
@@ -751,7 +767,7 @@ function renderHvtGroupDetail(group) {
           </dl>
           <dl class="meta-item">
             <dt>${group.group_level === "fix_surface_cluster" ? "Fix surface signature" : "Representative selector"}</dt>
-            <dd class="mono">${escapeHtml(group.normalized_selector)}</dd>
+            <dd class="mono copyable" data-copy="${escapeHtml(group.normalized_selector)}" title="Click to copy">${escapeHtml(group.normalized_selector)}</dd>
           </dl>
           <dl class="meta-item">
             <dt>Last seen</dt>
@@ -768,14 +784,14 @@ function renderHvtGroupDetail(group) {
         ${group.representative_snippet ? `
           <div class="panel info-panel">
             <h3>Representative Snippet</h3>
-            <p class="mono hvt-group-snippet">${escapeHtml(group.representative_snippet)}</p>
+            <p class="mono hvt-group-snippet copyable" data-copy="${escapeHtml(group.representative_snippet)}" title="Click to copy">${escapeHtml(group.representative_snippet)}</p>
           </div>
         ` : ""}
         <div class="panel info-panel">
           <h3>Sample URLs</h3>
           ${group.sample_urls?.length ? `
             <ul class="guidance-list">
-              ${group.sample_urls.map((url) => `<li class="mono hvt-group-url">${escapeHtml(url)}</li>`).join("")}
+              ${group.sample_urls.map((url) => `<li class="mono hvt-group-url"><a href="${escapeHtml(url)}" target="_blank" rel="noreferrer">${escapeHtml(url)}</a></li>`).join("")}
             </ul>
           ` : '<p class="hint">No sample URLs published for this group.</p>'}
         </div>
@@ -823,12 +839,12 @@ function renderRunDetailView() {
     >
       <td>
         <strong>${escapeHtml(finding.rule_id)}</strong><br>
-        <span class="subtle mono">${escapeHtml(finding.latest_instance.normalized_url)}</span>
+        <a class="subtle mono" href="${escapeHtml(finding.latest_instance.page_url || finding.latest_instance.normalized_url)}" target="_blank" rel="noreferrer" onclick="event.stopPropagation()">${escapeHtml(finding.latest_instance.normalized_url)}</a>
       </td>
       <td>${renderBadge(finding.severity)}</td>
       <td>${renderBadge(finding.status)}</td>
       <td>${finding.diff_status ? renderBadge(finding.diff_status) : '<span class="subtle">n/a</span>'}</td>
-      <td><span class="selector-clamp mono" title="${escapeHtml(finding.latest_instance.selector)}">${escapeHtml(finding.latest_instance.selector)}</span></td>
+      <td><span class="selector-clamp mono copyable" data-copy="${escapeHtml(finding.latest_instance.selector)}" title="Click to copy selector">${escapeHtml(finding.latest_instance.selector)}</span></td>
       <td>${formatDateTime(finding.latest_instance.detected_at)}</td>
     </tr>
   `).join("");
@@ -1107,11 +1123,11 @@ function renderFindingDetail() {
           </dl>
           <dl class="meta-item">
             <dt>Page</dt>
-            <dd class="mono">${escapeHtml(finding.latest_instance.normalized_url)}</dd>
+            <dd class="mono"><a href="${escapeHtml(finding.latest_instance.page_url || finding.latest_instance.normalized_url)}" target="_blank" rel="noreferrer">${escapeHtml(finding.latest_instance.normalized_url)}</a></dd>
           </dl>
           <dl class="meta-item">
             <dt>Selector</dt>
-            <dd class="mono">${escapeHtml(finding.latest_instance.selector)}</dd>
+            <dd class="mono copyable" data-copy="${escapeHtml(finding.latest_instance.selector)}" title="Click to copy">${escapeHtml(finding.latest_instance.selector)}</dd>
           </dl>
           <dl class="meta-item">
             <dt>Detected</dt>
@@ -1124,7 +1140,7 @@ function renderFindingDetail() {
         </div>
         <div class="panel">
           <h3>Snippet</h3>
-          <p class="mono">${escapeHtml(finding.latest_instance.snippet || "No snippet captured.")}</p>
+          <p class="mono copyable" data-copy="${escapeHtml(finding.latest_instance.snippet || "")}" title="Click to copy">${escapeHtml(finding.latest_instance.snippet || "No snippet captured.")}</p>
         </div>
       </div>
 
@@ -1833,6 +1849,15 @@ function attachEvents() {
   document.addEventListener("click", (event) => {
     if (event.target instanceof HTMLElement && event.target.matches("[data-modal-backdrop='true']")) {
       closeModal();
+      return;
+    }
+
+    const copyEl = event.target.closest(".copyable");
+    if (copyEl && copyEl.dataset.copy) {
+      event.stopPropagation();
+      copyToClipboard(copyEl.dataset.copy);
+      copyEl.classList.add("copied");
+      setTimeout(() => copyEl.classList.remove("copied"), 1200);
       return;
     }
 

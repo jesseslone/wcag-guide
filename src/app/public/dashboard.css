@@ -653,6 +653,53 @@ tbody tr.selected {
   word-break: break-word;
 }
 
+.copyable {
+  cursor: copy;
+  position: relative;
+  transition: background-color 200ms ease;
+  border-radius: 6px;
+}
+
+.copyable:hover {
+  background: var(--panel-muted);
+}
+
+.copyable.copied::after {
+  content: "Copied!";
+  position: absolute;
+  top: -1.6em;
+  right: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--success);
+  pointer-events: none;
+  animation: fade-out 1200ms ease forwards;
+}
+
+@keyframes fade-out {
+  0%, 60% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.meta-item a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.meta-item a:hover {
+  text-decoration: underline;
+}
+
+td a.mono {
+  text-decoration: none;
+  color: var(--muted);
+}
+
+td a.mono:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
 .run-head {
   display: grid;
   gap: 10px;
