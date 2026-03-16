@@ -567,8 +567,8 @@ function renderHero() {
     <section class="hero">
       <div class="hero-copy">
         <div class="hero-copy-row">
-          <h1>Improve Site Accessibility</h1>
-          <p>Triage findings, update status, and trigger rescans from one compact surface.</p>
+          <h1>WCAG-Guide</h1>
+          <p>Scan, triage, and remediate WCAG 2.1 findings from one compact surface.</p>
         </div>
       </div>
       <div class="hero-panel">
@@ -1387,7 +1387,11 @@ function openNewScanModal() {
       environment: currentRun.scan_target.environment,
       branch: currentRun.scan_target.branch,
       base_url: currentRun.scan_target.base_url,
-      compliance_profile_id: currentRun.compliance_profile?.id ?? state.modal.newScan.compliance_profile_id
+      compliance_profile_id: currentRun.compliance_profile?.id ?? state.modal.newScan.compliance_profile_id,
+      max_pages: currentRun.scan_options?.max_pages ?? state.modal.newScan.max_pages,
+      max_depth: currentRun.scan_options?.max_depth ?? state.modal.newScan.max_depth,
+      concurrency: currentRun.scan_options?.concurrency ?? state.modal.newScan.concurrency,
+      retries: currentRun.scan_options?.retries ?? state.modal.newScan.retries
     };
   }
 
@@ -1718,7 +1722,8 @@ async function launchRescan(mode) {
 
   const body = {
     scan_target: run.scan_target,
-    compliance_profile_id: run.compliance_profile?.id
+    compliance_profile_id: run.compliance_profile?.id,
+    scan_options: run.scan_options ?? undefined
   };
 
   if (mode === "full") {
