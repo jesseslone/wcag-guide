@@ -7,7 +7,7 @@ Accessibility compliance, together. You bring the expertise. Your AI agent bring
 
 WCAG-Guide is an open-source WCAG 2.1 scanner and remediation tracker designed so that you and your agentic coding tool work side by side. You review findings and make decisions in the dashboard. Your AI agent scans sites, triages issues, and triggers rescans through the MCP server. One workflow, two interfaces, no context-switching.
 
-It's a self-hosted alternative to platforms like SiteImprove — no per-seat pricing, no vendor lock-in, and no waiting on someone else's roadmap. Whether you're a government team working toward Title II compliance, a developer who cares about getting accessibility right, or an organization that just wants to ship inclusive software, WCAG-Guide gives you the tools to move fast and stay accountable.
+It's a self-hosted alternative to commercial platforms like Siteimprove, Deque, Level Access, and AudioEye — no per-seat pricing, no vendor lock-in, and no waiting on someone else's roadmap. Whether you're a government team working toward Title II compliance, a developer who cares about getting accessibility right, or an organization that just wants to ship inclusive software, WCAG-Guide gives you the tools to move fast and stay accountable.
 
 > **[Documentation site](https://jesseslone.github.io/wcag-guide/)** -- Quickstart, architecture, MCP integration, and roadmap.
 
